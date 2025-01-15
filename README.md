@@ -1,7 +1,7 @@
 Dynamic Obstacle Removal for Grandtour Project
 ---
 
-0. Prerequisite
+0. Prerequisite  
   Pointcloud of every single scan is extracted from rosbag by calling [Pointcloud Extract](https://github.com/iiisaac40/simple_ndt_slam_grandtour).   
   If not, do it first
 
