@@ -1,3 +1,32 @@
+Dynamic Obstacle Removal for Grandtour Project
+---
+
+0. Prerequisite
+  Pointcloud of every single scan is extracted from rosbag by calling [Pointcloud Extract](https://github.com/iiisaac40/simple_ndt_slam_grandtour).   
+  If not, do it first
+
+
+1. clone the code
+```sh
+git clone https://github.com/iiisaac40/dynablox_grandtour.git
+```
+
+2. Navigate to the repo and build
+```sh
+cd dynablox_grandtour
+cmake -B build && cmake --build build
+```
+
+3. Run the code
+```sh
+./build/dynablox_run  {Path to DATA Folder} {Path to Config File} {pcd timestamp}
+
+Example
+./build/dynablox_run ../11-03/extracted_pcd assets/config_grandtour.yaml 1730618341820832014 
+```
+
+**The following is the original README**
+
 Dynablox
 ---
 
