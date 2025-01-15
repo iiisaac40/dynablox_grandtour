@@ -21,6 +21,14 @@
 
 #include "dynablox/dynablox.h"
 
+
+std::string extractTimestampFromFilename(const std::string& filename) {
+    std::size_t last_slash = filename.find_last_of("/\\");
+    std::string base_name = filename.substr(last_slash + 1);
+    std::size_t dot = base_name.find_last_of(".");
+    return base_name.substr(0, dot); // Extract the timestamp part of the filename
+}
+
 int main(int argc, char** argv) {
   /* #region Initial  */
   google::InitGoogleLogging(argv[0]);
@@ -34,6 +42,8 @@ int main(int argc, char** argv) {
   }
   std::string pcd_parent = argv[1];  // we assume that rawmap is in pcd_parent;
   std::string config_file = argv[2];
+  std::string current_timestamp = argv[3];
+
   int cnt = 1, run_max = 1;
   // check if the config_file exists
   if (!std::filesystem::exists(config_file)) {
@@ -48,16 +58,50 @@ int main(int argc, char** argv) {
 
   // sort the filenames
   std::sort(filenames.begin(), filenames.end());
-  int total = filenames.size();
-  if (argc > 3) {
-    run_max = std::stoi(argv[3]);
-    if (run_max == -1) {
-      LOG(INFO) << "We will run all the frame in sequence, the total "
-                   "number is: "
-                << total;
-      run_max = total + 1;
-    }
+
+  int current_index = -1;
+  for (size_t i = 0; i < filenames.size(); ++i) {
+      std::string file_timestamp = extractTimestampFromFilename(filenames[i]);
+      if (file_timestamp == current_timestamp) {
+          current_index = i;
+          break;
+      }
   }
+
+  if (current_index == -1) {
+    LOG(ERROR) << "Timestamp " << current_timestamp << " not found in the filenames.";
+    return 1;
+  }
+
+  int start_index = 0, end_index = 0;
+  if (current_index < 150) {
+    start_index = 0;
+    end_index   = 300;
+  } else if (current_index > filenames.size() - 1 - 150) {
+    start_index = filenames.size() - 1 - 300;
+    end_index   = filenames.size() - 1;
+  } else {
+    start_index = current_index - 150;
+    end_index   = current_index + 150;
+  }
+
+  std::vector<std::string> submap_filenames(filenames.begin() + start_index, filenames.begin() + end_index + 1);
+  filenames = submap_filenames;
+  std::cout << "filenames size: " << filenames.size() << std::endl;
+
+
+
+  int total = filenames.size();
+  run_max = total + 1;
+  // if (argc > 3) {
+  //   run_max = std::stoi(argv[3]);
+  //   if (run_max == -1) {
+  //     LOG(INFO) << "We will run all the frame in sequence, the total "
+  //                  "number is: "
+  //               << total;
+  //     run_max = total + 1;
+  //   }
+  // }
   /* #endregion */
 
   dynablox::MapUpdater map_updater(config_file);
@@ -83,7 +127,7 @@ int main(int argc, char** argv) {
     cnt++;
     if (cnt > run_max) break;
   }
-  map_updater.saveMap(pcd_parent);
+  map_updater.saveMap(pcd_parent, current_timestamp);
   map_updater.timing.stop();
   map_updater.timing.print("Dynablox " /*title*/, true /*color*/,
                            true /*bold*/);

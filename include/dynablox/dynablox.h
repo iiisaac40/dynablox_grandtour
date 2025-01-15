@@ -36,7 +36,7 @@ class MapUpdater {
 
   void setConfig();
   void run(pcl::PointCloud<PointType>::Ptr const& single_pc);
-  void saveMap(std::string const& folder_path);
+  void saveMap(std::string const& folder_path, std::string const& file_name);
   const common::Config getCfg() { return config_; }
 
  private:
