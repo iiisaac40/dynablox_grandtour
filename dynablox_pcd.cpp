@@ -43,6 +43,7 @@ int main(int argc, char** argv) {
   std::string pcd_parent = argv[1];  // we assume that rawmap is in pcd_parent;
   std::string config_file = argv[2];
   std::string current_timestamp = argv[3];
+  int accumulation_frames = std::stoi(argv[4]);
 
   int cnt = 1, run_max = 1;
   // check if the config_file exists
@@ -74,15 +75,15 @@ int main(int argc, char** argv) {
   }
 
   int start_index = 0, end_index = 0;
-  if (current_index < 150) {
+  if (current_index < accumulation_frames) {
     start_index = 0;
-    end_index   = 300;
-  } else if (current_index > filenames.size() - 1 - 150) {
-    start_index = filenames.size() - 1 - 300;
+    end_index   = accumulation_frames * 2;
+  } else if (current_index > filenames.size() - 1 - accumulation_frames) {
+    start_index = filenames.size() - 1 - accumulation_frames * 2;
     end_index   = filenames.size() - 1;
   } else {
-    start_index = current_index - 150;
-    end_index   = current_index + 150;
+    start_index = current_index - accumulation_frames;
+    end_index   = current_index + accumulation_frames;
   }
 
   std::vector<std::string> submap_filenames(filenames.begin() + start_index, filenames.begin() + end_index + 1);
