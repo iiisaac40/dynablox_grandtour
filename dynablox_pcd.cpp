@@ -128,7 +128,9 @@ int main(int argc, char** argv) {
     cnt++;
     if (cnt > run_max) break;
   }
-  map_updater.saveMap(pcd_parent, current_timestamp);
+  
+  std::string file_name = "AccumFrame_" + std::to_string(accumulation_frames) + "_" + current_timestamp;
+  map_updater.saveMap(pcd_parent, file_name);
   map_updater.timing.stop();
   map_updater.timing.print("Dynablox " /*title*/, true /*color*/,
                            true /*bold*/);
