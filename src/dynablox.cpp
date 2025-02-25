@@ -12,6 +12,9 @@
 
 #include <future>
 #include <mutex>
+#include <filesystem>
+#include <string>
+
 
 #include <pcl/common/transforms.h>
 
@@ -88,7 +91,7 @@ void MapUpdater::setConfig() {
   // clang-format on
 }
 
-void MapUpdater::run(pcl::PointCloud<PointType>::Ptr const& single_pc) {
+void MapUpdater::run(pcl::PointCloud<PointType>::Ptr const& single_pc, std::string const& file_path) {
   Cloud cloud = *single_pc;
   CloudInfo cloud_info;
 
@@ -132,6 +135,8 @@ void MapUpdater::run(pcl::PointCloud<PointType>::Ptr const& single_pc) {
   tsdf_mapper_->processPointCloudAndInsert(origin_cloud, T_S_W, timing);
   timing[6].stop();
 
+  pcl::PointCloud<PointType>::Ptr current_static_cloud(new pcl::PointCloud<PointType>);
+
   /* Note from Kin */
   /* optional 1: use the cluster info to decide
      recommend for real-time detection, lower score in clean task but high in IoU */ 
@@ -154,7 +159,28 @@ void MapUpdater::run(pcl::PointCloud<PointType>::Ptr const& single_pc) {
       Dynamic_Cloud_->points.emplace_back(pt.x, pt.y, pt.z);
     else
       Static_Cloud_->points.emplace_back(pt.x, pt.y, pt.z);
+      current_static_cloud->points.emplace_back(pt.x, pt.y, pt.z);
   }
+
+  // Save single pcd file
+  std::string new_file_path = file_path;
+  size_t pos = new_file_path.find("extracted_pcd");
+
+  if (pos != std::string::npos) {
+      new_file_path.replace(pos, std::string("extracted_pcd").length(), "dynablox_pcd");
+  }
+
+  std::filesystem::path save_path = std::filesystem::path(new_file_path).parent_path();
+  if (!std::filesystem::exists(save_path)) {
+      std::filesystem::create_directories(save_path);
+  }
+  if (pcl::io::savePCDFileBinary(new_file_path, *current_static_cloud) == -1) {
+      std::cerr << "Error: Could not save PCD file to " << new_file_path << std::endl;
+  } else {
+      std::cout << "Saved static PCD file: " << new_file_path << std::endl;
+  }
+
+
 }
 
 void MapUpdater::saveMap(std::string const& folder_path, std::string const& file_name) {

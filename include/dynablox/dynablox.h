@@ -35,7 +35,7 @@ class MapUpdater {
   ufo::Timing timing;
 
   void setConfig();
-  void run(pcl::PointCloud<PointType>::Ptr const& single_pc);
+  void run(pcl::PointCloud<PointType>::Ptr const& single_pc, std::string const& file_path);
   void saveMap(std::string const& folder_path, std::string const& file_name);
   const common::Config getCfg() { return config_; }
 
