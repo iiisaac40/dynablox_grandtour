@@ -157,9 +157,11 @@ void MapUpdater::run(pcl::PointCloud<PointType>::Ptr const& single_pc, std::stri
   for (const auto& pt : cloud.points) {
     if (cloud_info.points[i++].ever_free_level_dynamic)
       Dynamic_Cloud_->points.emplace_back(pt.x, pt.y, pt.z);
-    else
+    else {
       Static_Cloud_->points.emplace_back(pt.x, pt.y, pt.z);
       current_static_cloud->points.emplace_back(pt.x, pt.y, pt.z);
+
+    }  
   }
 
   // Save single pcd file
