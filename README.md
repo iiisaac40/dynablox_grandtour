@@ -1,9 +1,17 @@
-Dynamic Obstacle Removal for Grandtour Project
+## Dynamic Obstacle Removal for Grandtour Project
 ---
 
 0. Prerequisite  
   Pointcloud of every single scan is extracted from rosbag by calling [Pointcloud Extract](https://github.com/iiisaac40/simple_ndt_slam_grandtour).   
   If not, do it first
+```sh
+cd /home/grand_tour_depth_benchmark/third_parties/simple_ndt_slam_grandtour/
+tools/build/bag2pcd_tf {PointCloudRosBagPath} {OutputFolder} {PointCloudRosTopics} {MapFrame}
+
+# Example:
+
+tools/build/bag2pcd_tf hesai_dlio.bag  MISSION_DATA/extracted_pcd  /dlio/deskewed_point_cloud    dlio_map
+```
 
 
 1. clone the code
@@ -17,15 +25,23 @@ cd dynablox_grandtour
 cmake -B build && cmake --build build
 ```
 
-3. Run the code
+3. Run the code, save to PCD file
 ```sh
-./build/dynablox_run  {Path to DATA Folder} {Path to Config File} {pcd timestamp}
+./build/dynablox_run  {Path to DATA Folder (STEP 0)} {Path to Config File}
 
 Example
-./build/dynablox_run ../11-03/extracted_pcd assets/config_grandtour.yaml 1730618341820832014 
+./build/dynablox_run   MISSION_DATA/extracted_pcd   /home/grand_tour_depth_benchmark/third_parties/dynablox_grandtour/assets/config_grandtour.yaml
 ```
 
-**The following is the original README**
+4. To save PCD to rosbag file
+Refer to: [`/home/grand_tour_depth_benchmark/utils/convert_utils/pcd2rosbag.py`](https://github.com/leggedrobotics/grand_tour_depth_benchmark/blob/devel/depth_benchmark/utils/convert_utils/pcd2rosbag.py)
+
+
+## Check branch dynamic_static
+The branch `dynamic_static` can save dynamic point cloud frame and static point cloud frame separately into pcd files.
+
+
+# **The following is the original repo README**
 
 Dynablox
 ---
