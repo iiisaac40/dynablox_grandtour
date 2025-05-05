@@ -136,6 +136,7 @@ void MapUpdater::run(pcl::PointCloud<PointType>::Ptr const& single_pc, std::stri
   timing[6].stop();
 
   pcl::PointCloud<PointType>::Ptr current_static_cloud(new pcl::PointCloud<PointType>);
+  pcl::PointCloud<PointType>::Ptr current_dynamic_cloud(new pcl::PointCloud<PointType>);
 
   /* Note from Kin */
   /* optional 1: use the cluster info to decide
@@ -155,31 +156,53 @@ void MapUpdater::run(pcl::PointCloud<PointType>::Ptr const& single_pc, std::stri
      recommend for clean task, higher clean score than previous one */ 
   size_t i = 0;
   for (const auto& pt : cloud.points) {
-    if (cloud_info.points[i++].ever_free_level_dynamic)
+    if (cloud_info.points[i++].ever_free_level_dynamic) {
       Dynamic_Cloud_->points.emplace_back(pt.x, pt.y, pt.z);
-    else {
+      current_dynamic_cloud->points.emplace_back(pt.x, pt.y, pt.z);
+    } else {
       Static_Cloud_->points.emplace_back(pt.x, pt.y, pt.z);
       current_static_cloud->points.emplace_back(pt.x, pt.y, pt.z);
-
     }  
   }
 
   // Save single pcd file
-  std::string new_file_path = file_path;
-  size_t pos = new_file_path.find("extracted_pcd");
+  std::string static_file_path = file_path;
+  size_t pos = static_file_path.find("extracted_pcd");
 
   if (pos != std::string::npos) {
-      new_file_path.replace(pos, std::string("extracted_pcd").length(), "dynablox_pcd");
+      static_file_path.replace(pos, std::string("extracted_pcd").length(), "dynablox_pcd");
   }
 
-  std::filesystem::path save_path = std::filesystem::path(new_file_path).parent_path();
+  std::filesystem::path save_path = std::filesystem::path(static_file_path).parent_path();
   if (!std::filesystem::exists(save_path)) {
       std::filesystem::create_directories(save_path);
   }
-  if (pcl::io::savePCDFileBinary(new_file_path, *current_static_cloud) == -1) {
-      std::cerr << "Error: Could not save PCD file to " << new_file_path << std::endl;
+  if (pcl::io::savePCDFileBinary(static_file_path, *current_static_cloud) == -1) {
+      std::cerr << "Error: Could not save PCD file to " << static_file_path << std::endl;
   } else {
-      std::cout << "Saved static PCD file: " << new_file_path << std::endl;
+      std::cout << "Saved static PCD file: " << static_file_path << std::endl;
+  }
+
+  if (!current_dynamic_cloud->empty()) {
+    std::string dynamic_file_path = file_path;
+    size_t dynamic_pos = dynamic_file_path.find("extracted_pcd");
+    if (dynamic_pos != std::string::npos) {
+        dynamic_file_path.replace(dynamic_pos, std::string("extracted_pcd").length(), "dynamic_pcd");
+    }
+
+    std::filesystem::path dynamic_save_path = std::filesystem::path(dynamic_file_path).parent_path();
+    if (!std::filesystem::exists(dynamic_save_path)) {
+        std::filesystem::create_directories(dynamic_save_path);
+    }
+
+    if (pcl::io::savePCDFileBinary(dynamic_file_path, *current_dynamic_cloud) == -1) {
+        std::cerr << "Error: Could not save dynamic PCD file to " << dynamic_file_path << std::endl;
+    } else {
+        std::cout << "Saved dynamic PCD file (" << current_dynamic_cloud->size() 
+                  << " points): " << dynamic_file_path << std::endl;
+    }
+  } else {
+      std::cerr << "Warning: Dynamic cloud is empty, skipping save" << std::endl;
   }
 
 
